@@ -1,0 +1,1017 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10264b">
+<title>JULFERIIN WORK</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+--navy:#10264b;--blue:#1764a0;--light:#eaf3fc;
+--pink:#c52d86;--white:#fff;--green:#168653;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#edf1f6;color:#182b43;font-family:Arial,sans-serif}
+header{background:linear-gradient(120deg,#10264b,#1764a0);color:white;padding:17px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header h2{margin:0}
+main{max-width:1250px;margin:auto;padding:15px}
+.card{background:white;padding:17px;border-radius:12px;margin-bottom:14px;box-shadow:0 3px 12px #0000000b}
+h2,h3{color:var(--navy)}
+input,select,textarea{width:100%;padding:12px;margin:6px 0 12px;border:1px solid #ccd5e0;border-radius:7px;font-size:15px}
+textarea{min-height:120px}
+button{border:0;border-radius:7px;padding:11px 15px;margin:3px;background:var(--blue);color:white;font-weight:bold;cursor:pointer}
+button:hover{opacity:.85}
+.pink{background:var(--pink)}
+.dark{background:var(--navy)}
+.green{background:var(--green)}
+.red{background:#a52b40}
+.secondary{background:#65758b}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.branch{border-left:5px solid var(--pink);cursor:pointer}
+.branch:hover{background:#f4f8ff}
+.stat{padding:16px;border-radius:9px;background:var(--light)}
+.stat strong{display:block;font-size:27px;color:var(--blue)}
+.menu{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.record{padding:13px;border:1px solid #dce4ee;border-radius:8px;margin:9px 0;overflow-wrap:anywhere}
+.record h4{margin:0 0 8px}
+small{color:#68798d}
+#mini{position:fixed;bottom:15px;right:12px;border-radius:30px;background:var(--navy);padding:14px;z-index:20}
+footer{text-align:center;padding:20px;color:#718096}
+@media(min-width:850px){main{padding:25px}}
+</style>
+</head>
+
+<body>
+<header>
+ <div>
+  <h2>JULFERIIN WORK</h2>
+  <small style="color:#dbeaff">GESTÃO EMPRESARIAL ONLINE</small>
+ </div>
+ <div id="sessionInfo">Sem sessão</div>
+</header>
+
+<main>
+
+<!-- LOGIN -->
+<section id="login" class="card">
+ <h2>Bem-vindo à JULFERIIN WORK</h2>
+ <p>Entrar na plataforma empresarial.</p>
+ <input id="email" type="email" placeholder="Email">
+ <input id="password" type="password" placeholder="Palavra-passe">
+ <button onclick="login()">ENTRAR</button>
+ <button class="pink" onclick="register()">CRIAR CONTA</button>
+ <p id="loginMessage"></p>
+</section>
+
+<!-- HOME -->
+<section id="home" class="hidden">
+ <div class="card">
+  <h2>Painéis empresariais</h2>
+  <p>Escolha o ramo que pretende abrir.</p>
+  <div id="branchList" class="grid"></div>
+ </div>
+</section>
+
+<!-- RAMO -->
+<section id="branchScreen" class="hidden">
+ <div class="card">
+  <button class="dark" onclick="go('home')">VOLTAR</button>
+  <h2 id="branchHeading"></h2>
+  <div id="areaList" class="grid"></div>
+ </div>
+</section>
+
+<!-- LOCAL -->
+<section id="locationScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('branchScreen')">VOLTAR</button>
+  <h2>Local de operação</h2>
+  <select id="country">
+   <option value="">País</option>
+   <option>Moçambique</option>
+   <option>Tanzânia</option>
+   <option>África do Sul</option>
+   <option>China</option>
+   <option>Outro</option>
+  </select>
+  <input id="province" placeholder="Província">
+  <input id="district" placeholder="Distrito">
+  <input id="adminPost" placeholder="Posto administrativo">
+  <button class="green" onclick="confirmLocation()">OK - CONTINUAR</button>
+ </div>
+</section>
+
+<!-- PERFIL -->
+<section id="profileScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('locationScreen')">VOLTAR</button>
+  <h2>Perfil do trabalhador</h2>
+  <form id="profileForm">
+   <input id="pName" placeholder="Nome completo" required>
+   <input id="pPhone" placeholder="Número de telefone" required>
+   <input id="pIdentity" placeholder="BI / DIRE / Passaporte">
+   <input id="pEmail" type="email" placeholder="Email">
+   <input id="pPosition" placeholder="Cargo">
+
+   <label>Fotografia de perfil</label>
+   <input id="pPhoto" type="file" accept="image/*">
+
+   <label>Currículo CV</label>
+   <input id="pCV" type="file" accept=".pdf,.doc,.docx">
+
+   <label>Certificados</label>
+   <input id="pCertificate" type="file">
+
+   <label>Documentos anexos</label>
+   <input id="pAttachment" type="file" multiple>
+
+   <button class="green" type="submit">GUARDAR PERFIL</button>
+  </form>
+  <button onclick="loadMyProfile()">VER / EDITAR PERFIL</button>
+ </div>
+</section>
+
+<!-- TRABALHO -->
+<section id="workScreen" class="hidden">
+ <div class="card">
+  <button class="dark" onclick="go('home')">PAINÉIS</button>
+  <h2>CAMPO PRINCIPAL PARA TRABALHO JULFERIIN</h2>
+  <p id="locationInfo"></p>
+  <div class="menu">
+   <button onclick="go('postScreen')">+ ADD NOVO POSTO</button>
+   <button onclick="go('searchScreen')">PESQUISAR POSTO</button>
+   <button onclick="go('profileScreen')">MEU PERFIL</button>
+   <button onclick="go('reportScreen')">RELATÓRIOS</button>
+   <button onclick="go('archiveScreen')">ARQUIVO</button>
+   <button onclick="go('agentScreen')">AGENTES</button>
+  </div>
+ </div>
+ <div class="grid">
+  <div class="stat">Postos<strong id="totalPosts">0</strong></div>
+  <div class="stat">Relatórios<strong id="totalReports">0</strong></div>
+  <div class="stat">Documentos<strong id="totalDocs">0</strong></div>
+ </div>
+ <div class="card">
+  <h3>Os meus postos</h3>
+  <div id="myPosts"></div>
+ </div>
+</section>
+
+<!-- NOVO POSTO -->
+<section id="postScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('workScreen')">VOLTAR</button>
+  <h2>Adicionar novo posto</h2>
+  <input id="postName" placeholder="Nome do posto" required>
+  <input id="postPlace" placeholder="Local">
+  <input id="postPhone" placeholder="Número de telefone">
+  <label>Fotografia da pessoa no posto</label>
+  <input id="postPhoto" type="file" accept="image/*">
+  <button onclick="getGPS()">MAP POSTO NOW - OBTER GPS</button>
+  <p id="gpsInfo">GPS não registado.</p>
+  <button class="green" onclick="savePost()">GUARDAR POSTO</button>
+ </div>
+</section>
+
+<!-- PESQUISA -->
+<section id="searchScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('workScreen')">VOLTAR</button>
+  <h2>Pesquisa de posto</h2>
+  <input id="searchCode" placeholder="Exemplo JR0001R1">
+  <button onclick="searchPost()">PESQUISAR</button>
+  <div id="searchResult"></div>
+ </div>
+</section>
+
+<!-- RELATÓRIOS -->
+<section id="reportScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('workScreen')">VOLTAR</button>
+  <h2>Relatórios de actividades</h2>
+  <select id="period">
+   <option>Diário</option><option>Semanal</option>
+   <option>Mensal</option><option>Anual</option>
+  </select>
+  <select id="reportType">
+   <option>Actividades</option><option>Produção</option>
+   <option>Vendas</option><option>Compras</option>
+   <option>Despesas</option><option>Viagens</option>
+   <option>Dívidas</option><option>Caixa - Entrada</option>
+   <option>Caixa - Saída</option>
+  </select>
+  <input id="amount" type="number" placeholder="Quantidade / valor em meticais">
+  <textarea id="reportDescription" placeholder="Descrição detalhada das actividades"></textarea>
+  <label>Fotografias e documentos</label>
+  <input id="reportFiles" type="file" multiple>
+  <button class="green" onclick="saveReport()">GUARDAR RELATÓRIO</button>
+  <div id="reportHistory"></div>
+ </div>
+</section>
+
+<!-- ARQUIVO -->
+<section id="archiveScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('workScreen')">VOLTAR</button>
+  <h2>Cofre de documentos JULFERIIN</h2>
+  <select id="docCategory">
+   <option>Recursos Humanos</option>
+   <option>Sabão Líquido</option>
+   <option>Documentos dos Trabalhadores</option>
+   <option>Documentos da Empresa</option>
+   <option>Contratos</option>
+   <option>Outros</option>
+  </select>
+  <input id="docTitle" placeholder="Nome do documento">
+  <textarea id="docDescription" placeholder="Descrição"></textarea>
+  <input id="docFiles" type="file" multiple>
+  <button class="green" onclick="saveDocument()">GUARDAR NO COFRE</button>
+  <div id="documentHistory"></div>
+ </div>
+</section>
+
+<!-- AGENTES -->
+<section id="agentScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('workScreen')">VOLTAR</button>
+  <h2>Arquivo de Agentes</h2>
+  <select id="agentType">
+   <option>Agente VS</option><option>Agente VC</option>
+   <option>Agente CC</option>
+  </select>
+  <input id="agentName" placeholder="Nome">
+  <input id="agentPlace" placeholder="Local">
+  <input id="agentPhone" placeholder="Telefone">
+  <input id="agentEmail" type="email" placeholder="Email">
+  <input id="agentNumber" placeholder="Número de agente">
+  <input id="agentQuantity" type="number" placeholder="Quantidade que levou">
+  <input id="agentPaid" type="number" placeholder="Quantidade que pagou">
+  <label>Contrato de venda</label>
+  <input id="agentContract" type="file">
+  <textarea id="agentNotes" placeholder="Informações adicionais"></textarea>
+  <button class="green" onclick="saveAgent()">GUARDAR AGENTE</button>
+  <div id="agentHistory"></div>
+ </div>
+</section>
+
+<!-- ADMINISTRAÇÃO -->
+<section id="adminScreen" class="hidden">
+ <div class="card">
+  <button onclick="go('home')">VOLTAR</button>
+  <h2>JULFERIIN LDA PRINCIPAL</h2>
+  <p>PAINEL EXCLUSIVO DO DIRETOR-GERAL</p>
+
+  <div class="grid">
+   <div class="stat">Registos<strong id="adminTotal">0</strong></div>
+   <div class="stat">Postos<strong id="adminPostTotal">0</strong></div>
+   <div class="stat">Perfis<strong id="adminProfileTotal">0</strong></div>
+  </div>
+
+  <h3>Pesquisa geral de postos</h3>
+  <input id="adminCode" placeholder="Número do posto">
+  <button onclick="adminSearch()">PESQUISAR</button>
+  <div id="adminSearchResult"></div>
+
+  <h3>Todos os ramos e áreas</h3>
+  <div id="adminBranches"></div>
+
+  <h3>Todos os registos</h3>
+  <div id="adminRecords"></div>
+
+  <h3>Redes sociais da empresa</h3>
+  <input id="socialTikTok" placeholder="Link TikTok">
+  <input id="socialFacebook" placeholder="Link Facebook">
+  <input id="socialInstagram" placeholder="Link Instagram">
+  <input id="socialYoutube" placeholder="Link YouTube">
+  <button onclick="saveSocial()">GUARDAR LINKS</button>
+
+  <h3>Publicar actividades da empresa</h3>
+  <textarea id="activityText" placeholder="Descrição"></textarea>
+  <input id="activityFiles" type="file" multiple>
+  <button onclick="saveActivity()">PUBLICAR</button>
+ </div>
+</section>
+
+</main>
+
+<div id="mini" class="hidden" onclick="go('workScreen')">JULFERIIN</div>
+<footer>JULFERIIN LDA © 2026 | JULFERIIN WORK</footer>
+
+<script>
+// ========================================
+// SUPABASE - NOVO PROJETO
+// ========================================
+
+const SUPABASE_URL =
+'https://sasbkaknrlukkxieleph.supabase.co';
+
+const SUPABASE_PUBLISHABLE_KEY =
+'sb_publishable_JktuEA8xV_gHJpLNdq2PoQ_7NDoiT0b';
+
+const db = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_PUBLISHABLE_KEY
+);
+
+const BUCKET = 'julferiin-files';
+
+// ========================================
+// RAMOS E ÁREAS
+// ========================================
+
+const branches = {
+ 'JULFERIIN LDA PRINCIPAL':{
+  code:'123456J',areas:['Controlo Geral']
+ },
+ 'JULFERIIN LTD':{
+  code:'0000J',
+  areas:['Farmácia','Segurança','Vestuário','Cosméticos','Importação']
+ },
+ 'JULFERIIN LTD1':{
+  code:'1111J',
+  areas:['Limpeza','Manutenção','Fabrico de Sabão Líquido','Reparação Eletrónica']
+ },
+ 'JULFERIIN LTD2':{
+  code:'2222J',
+  areas:['Aluguer de Viaturas','Exportação','Importação']
+ },
+ 'JULFERIIN LTD3':{
+  code:'3333J',
+  areas:['Produtos Comestíveis','Cozinha','Mercearia']
+ },
+ 'JULFERIIN LTD4':{
+  code:'4444J',
+  areas:['Agricultura','Agropecuária','Jardinagem','Pulverização','Fumigação']
+ }
+};
+
+let currentBranch='';
+let currentArea='';
+let currentLocation={};
+let gps={latitude:null,longitude:null};
+let records=[];
+let profileRecord=null;
+let isAdmin=false;
+
+const $ = id => document.getElementById(id);
+const val = id => $(id).value.trim();
+
+// ========================================
+// NAVEGAÇÃO
+// ========================================
+
+function go(id){
+ document.querySelectorAll('main > section')
+ .forEach(s=>s.classList.add('hidden'));
+ $(id).classList.remove('hidden');
+
+ $('mini').classList.toggle('hidden',
+ ['login','home','branchScreen','locationScreen',
+ 'profileScreen','adminScreen'].includes(id));
+}
+
+function message(id,text){
+ $(id).textContent=text;
+}
+
+// ========================================
+// AUTENTICAÇÃO
+// ========================================
+
+async function login(){
+ const {error}=await db.auth.signInWithPassword({
+  email:val('email'),
+  password:$('password').value
+ });
+ if(error){message('loginMessage',error.message);return;}
+ await initialize();
+}
+
+async function register(){
+ const {error}=await db.auth.signUp({
+  email:val('email'),
+  password:$('password').value
+ });
+ message('loginMessage',error?
+ error.message:'Conta criada. Confirme o email se for solicitado.');
+}
+
+async function initialize(){
+ const {data:{user}}=await db.auth.getUser();
+ if(!user){go('login');return;}
+
+ $('sessionInfo').textContent=user.email;
+
+ const {data:admin,error}=await db.from('app_admins')
+ .select('user_id,role').eq('user_id',user.id).maybeSingle();
+
+ isAdmin=!error&&!!admin;
+
+ renderBranches();
+ await loadRecords();
+ go('home');
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==='SIGNED_OUT'){
+  isAdmin=false;
+  go('login');
+ }
+});
+
+// ========================================
+// RAMOS
+// ========================================
+
+function renderBranches(){
+ const box=$('branchList');
+ box.innerHTML='';
+
+ Object.entries(branches).forEach(([name,b])=>{
+  const div=document.createElement('div');
+  div.className='card branch';
+  const title=document.createElement('h3');
+  title.textContent=name;
+  const sub=document.createElement('small');
+  sub.textContent=b.areas.length+' áreas';
+  div.append(title,sub);
+  div.onclick=()=>openBranch(name);
+  box.appendChild(div);
+ });
+}
+
+async function openBranch(name){
+ const pin=prompt('Código de abertura do ramo:');
+ if(pin===null)return;
+
+ if(pin!==branches[name].code){
+  alert('Código incorreto.');
+  return;
+ }
+
+ currentBranch=name;
+
+ if(name==='JULFERIIN LDA PRINCIPAL'){
+  if(!isAdmin){
+   alert('Acesso exclusivo do Diretor-Geral. A tua conta não está autorizada.');
+   return;
+  }
+  await loadRecords();
+  renderAdmin();
+  go('adminScreen');
+  return;
+ }
+
+ $('branchHeading').textContent=name;
+ $('areaList').innerHTML='';
+
+ branches[name].areas.forEach(area=>{
+  const button=document.createElement('button');
+  button.textContent=area;
+  button.onclick=()=>{
+   currentArea=area;
+   go('locationScreen');
+  };
+  $('areaList').appendChild(button);
+ });
+
+ go('branchScreen');
+}
+
+// ========================================
+// LOCALIZAÇÃO
+// ========================================
+
+function confirmLocation(){
+ if(!val('country')||!val('province')||!val('district')){
+  alert('Preencha país, província e distrito.');
+  return;
+ }
+ currentLocation={
+  country:val('country'),
+  province:val('province'),
+  district:val('district'),
+  administrative_post:val('adminPost')
+ };
+ go('profileScreen');
+}
+
+// ========================================
+// UPLOAD SEGURO
+// ========================================
+
+async function uploadFiles(files){
+ const {data:{user}}=await db.auth.getUser();
+ if(!user)throw new Error('Sessão não encontrada.');
+
+ const paths=[];
+
+ for(const file of Array.from(files||[])){
+  const clean=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path=user.id+'/'+crypto.randomUUID()+'-'+clean;
+
+  const {error}=await db.storage.from(BUCKET)
+  .upload(path,file,{upsert:false});
+
+  if(error)throw error;
+  paths.push(path);
+ }
+ return paths;
+}
+
+async function saveRecord(type,title,payload,files=[],extra={}){
+ const {data:{user}}=await db.auth.getUser();
+ if(!user)throw new Error('Inicie sessão novamente.');
+
+ const paths=await uploadFiles(files);
+
+ const {data,error}=await db.from('app_records')
+ .insert({
+  branch:currentBranch,
+  area:currentArea,
+  record_type:type,
+  title:title,
+  payload:payload,
+  file_paths:paths,
+  created_by:user.id,
+  status:'Pendente',
+  ...extra
+ }).select().single();
+
+ if(error)throw error;
+ return data;
+}
+
+async function signedFile(path){
+ const {data,error}=await db.storage.from(BUCKET)
+ .createSignedUrl(path,300);
+
+ if(error)throw error;
+ return data.signedUrl;
+}
+
+// ========================================
+// PERFIL
+// ========================================
+
+$('profileForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+
+ try{
+  const files=[
+   ...$('pPhoto').files,
+   ...$('pCV').files,
+   ...$('pCertificate').files,
+   ...$('pAttachment').files
+  ];
+
+  const payload={
+   full_name:val('pName'),
+   phone:val('pPhone'),
+   identity_number:val('pIdentity'),
+   email:val('pEmail'),
+   position:val('pPosition'),
+   location:currentLocation
+  };
+
+  const paths=await uploadFiles(files);
+
+  if(profileRecord){
+   const {error}=await db.from('app_records')
+   .update({
+    title:payload.full_name,
+    payload,
+    file_paths:[...(profileRecord.file_paths||[]),...paths],
+    updated_at:new Date().toISOString()
+   }).eq('id',profileRecord.id);
+
+   if(error)throw error;
+  }else{
+   const {data:{user}}=await db.auth.getUser();
+   const {error}=await db.from('app_records').insert({
+    branch:currentBranch,
+    area:currentArea,
+    record_type:'Perfil',
+    title:payload.full_name,
+    payload,
+    file_paths:paths,
+    created_by:user.id,
+    status:'Pendente'
+   });
+   if(error)throw error;
+  }
+
+  alert('Perfil guardado online!');
+  await loadRecords();
+  go('workScreen');
+
+ }catch(err){alert(err.message);}
+});
+
+async function loadMyProfile(){
+ const {data:{user}}=await db.auth.getUser();
+
+ const {data,error}=await db.from('app_records')
+ .select('*').eq('record_type','Perfil')
+ .eq('created_by',user.id)
+ .order('created_at',{ascending:false}).limit(1);
+
+ if(error||!data?.length){
+  alert('Ainda não existe perfil guardado.');
+  return;
+ }
+
+ profileRecord=data[0];
+ const p=profileRecord.payload;
+
+ $('pName').value=p.full_name||'';
+ $('pPhone').value=p.phone||'';
+ $('pIdentity').value=p.identity_number||'';
+ $('pEmail').value=p.email||'';
+ $('pPosition').value=p.position||'';
+
+ currentBranch=profileRecord.branch;
+ currentArea=profileRecord.area;
+ currentLocation=p.location||{};
+
+ go('profileScreen');
+}
+
+// ========================================
+// GPS
+// ========================================
+
+function getGPS(){
+ if(!navigator.geolocation){
+  alert('GPS indisponível.');
+  return;
+ }
+
+ navigator.geolocation.getCurrentPosition(pos=>{
+  gps.latitude=pos.coords.latitude;
+  gps.longitude=pos.coords.longitude;
+
+  $('gpsInfo').innerHTML=
+  'Latitude: '+gps.latitude+'<br>Longitude: '+gps.longitude+
+  '<br><a target="_blank" href="https://maps.google.com/?q='+
+  gps.latitude+','+gps.longitude+'">Ver no Google Maps</a>';
+ },err=>alert(err.message),
+ {enableHighAccuracy:true,timeout:20000});
+}
+
+// ========================================
+// POSTOS
+// ========================================
+
+async function savePost(){
+ try{
+  if(!val('postName'))throw new Error('Escreva o nome do posto.');
+
+  const {data:code,error:codeError}=await db.rpc(
+   'generate_post_code',{p_branch_code:'R1'}
+  );
+
+  if(codeError)throw codeError;
+
+  const payload={
+   name:val('postName'),
+   local:val('postPlace'),
+   phone:val('postPhone'),
+   location:currentLocation
+  };
+
+  const files=await uploadFiles($('postPhoto').files);
+
+  const {data,error}=await db.from('app_records')
+  .insert({
+   branch:currentBranch,
+   area:currentArea,
+   record_type:'Posto',
+   title:payload.name,
+   post_code:code,
+   payload,
+   file_paths:files,
+   latitude:gps.latitude,
+   longitude:gps.longitude,
+   created_by:(await db.auth.getUser()).data.user.id,
+   status:'Pendente'
+  }).select().single();
+
+  if(error)throw error;
+
+  alert('Posto guardado!\nCódigo: '+data.post_code);
+  $('postName').value='';
+  $('postPlace').value='';
+  $('postPhone').value='';
+  $('postPhoto').value='';
+  gps={latitude:null,longitude:null};
+
+  await loadRecords();
+  go('workScreen');
+
+ }catch(err){alert(err.message);}
+}
+
+// ========================================
+// PESQUISA DE POSTOS
+// ========================================
+
+async function searchPost(){
+ const code=val('searchCode');
+ if(!code)return;
+
+ const {data,error}=await db.from('app_records')
+ .select('*').eq('post_code',code).maybeSingle();
+
+ if(error||!data){
+  $('searchResult').textContent='Posto não encontrado ou sem permissão.';
+  return;
+ }
+ await showRecord(data,'searchResult');
+}
+
+async function showRecord(r,containerId){
+ const box=$(containerId);
+ box.innerHTML='';
+
+ const div=document.createElement('div');
+ div.className='record';
+
+ const h=document.createElement('h3');
+ h.textContent=r.title||r.record_type;
+
+ const details=document.createElement('pre');
+ details.style.whiteSpace='pre-wrap';
+ details.textContent=
+ 'Código: '+(r.post_code||'-')+
+ '\nRamo: '+r.branch+
+ '\nÁrea: '+(r.area||'-')+
+ '\nEstado: '+r.status+
+ '\n\n'+JSON.stringify(r.payload,null,2);
+
+ div.append(h,details);
+
+ if(r.latitude!==null&&r.longitude!==null){
+  const a=document.createElement('a');
+  a.href=`https://maps.google.com/?q=${r.latitude},${r.longitude}`;
+  a.target='_blank';
+  a.textContent='Abrir mapa do posto';
+  div.appendChild(a);
+ }
+
+ for(const path of r.file_paths||[]){
+  const b=document.createElement('button');
+  b.textContent='VER / DESCARREGAR DOCUMENTO';
+  b.onclick=async()=>{
+   try{window.open(await signedFile(path),'_blank');}
+   catch(e){alert(e.message);}
+  };
+  div.appendChild(b);
+ }
+
+ box.appendChild(div);
+}
+
+// ========================================
+// RELATÓRIOS
+// ========================================
+
+async function saveReport(){
+ try{
+  await saveRecord('Relatório',val('reportType'),{
+   period:val('period'),
+   type:val('reportType'),
+   amount:val('amount'),
+   description:val('reportDescription'),
+   date:new Date().toISOString()
+  },$('reportFiles').files);
+
+  alert('Relatório guardado online.');
+  $('reportDescription').value='';
+  $('amount').value='';
+  $('reportFiles').value='';
+  await loadRecords();
+ }catch(e){alert(e.message);}
+}
+
+// ========================================
+// DOCUMENTOS
+// ========================================
+
+async function saveDocument(){
+ try{
+  await saveRecord('Documento',val('docTitle'),{
+   category:val('docCategory'),
+   description:val('docDescription')
+  },$('docFiles').files);
+
+  alert('Documento guardado no cofre online.');
+  await loadRecords();
+ }catch(e){alert(e.message);}
+}
+
+// ========================================
+// AGENTES VS / VC / CC
+// ========================================
+
+async function saveAgent(){
+ try{
+  await saveRecord('Agente',val('agentName'),{
+   type:val('agentType'),
+   name:val('agentName'),
+   place:val('agentPlace'),
+   phone:val('agentPhone'),
+   email:val('agentEmail'),
+   agent_number:val('agentNumber'),
+   quantity:val('agentQuantity'),
+   paid:val('agentPaid'),
+   notes:val('agentNotes')
+  },$('agentContract').files);
+
+  alert('Agente arquivado.');
+  await loadRecords();
+ }catch(e){alert(e.message);}
+}
+
+// ========================================
+// REDES SOCIAIS E ACTIVIDADES
+// ========================================
+
+async function saveSocial(){
+ try{
+  await saveRecord('Redes Sociais','Links JULFERIIN',{
+   tiktok:val('socialTikTok'),
+   facebook:val('socialFacebook'),
+   instagram:val('socialInstagram'),
+   youtube:val('socialYoutube')
+  });
+  alert('Links guardados.');
+  await loadRecords();
+ }catch(e){alert(e.message);}
+}
+
+async function saveActivity(){
+ try{
+  await saveRecord('Actividade','Actividade JULFERIIN',{
+   description:val('activityText')
+  },$('activityFiles').files);
+  alert('Actividade guardada.');
+  await loadRecords();
+ }catch(e){alert(e.message);}
+}
+
+// ========================================
+// ADMINISTRAÇÃO
+// ========================================
+
+async function adminSearch(){
+ const code=val('adminCode');
+
+ const {data,error}=await db.from('app_records')
+ .select('*').eq('post_code',code).maybeSingle();
+
+ if(error||!data){
+  $('adminSearchResult').textContent='Posto não encontrado.';
+  return;
+ }
+ await showRecord(data,'adminSearchResult');
+}
+
+async function changeStatus(id,status){
+ if(!isAdmin){alert('Acesso não autorizado.');return;}
+ if(!confirm('Confirmar: '+status+'?'))return;
+
+ const {error}=await db.from('app_records')
+ .update({status,updated_at:new Date().toISOString()})
+ .eq('id',id);
+
+ if(error)alert(error.message);
+ else{
+  alert('Estado atualizado.');
+  await loadRecords();
+  renderAdmin();
+ }
+}
+
+function renderAdmin(){
+ $('adminTotal').textContent=records.length;
+ $('adminPostTotal').textContent=
+ records.filter(r=>r.record_type==='Posto').length;
+ $('adminProfileTotal').textContent=
+ records.filter(r=>r.record_type==='Perfil').length;
+
+ const branchesBox=$('adminBranches');
+ branchesBox.innerHTML='';
+
+ Object.entries(branches).forEach(([name,b])=>{
+  const d=document.createElement('div');
+  d.className='record';
+  const h=document.createElement('b');
+  h.textContent=name;
+  const p=document.createElement('p');
+  p.textContent=b.areas.join(' | ');
+  d.append(h,p);
+  branchesBox.appendChild(d);
+ });
+
+ const box=$('adminRecords');
+ box.innerHTML='';
+
+ records.forEach(r=>{
+  const d=document.createElement('div');
+  d.className='record';
+
+  const h=document.createElement('h4');
+  h.textContent=(r.post_code||r.record_type)+' - '+(r.title||'');
+
+  const p=document.createElement('p');
+  p.textContent=r.branch+' | '+r.area+' | '+r.status;
+
+  d.append(h,p);
+
+  if(r.record_type==='Posto'){
+   ['Aprovado','Bloqueado','Cancelado'].forEach(status=>{
+    const b=document.createElement('button');
+    b.textContent=status;
+    b.className=status==='Aprovado'?'green':
+      status==='Bloqueado'?'red':'secondary';
+    b.onclick=()=>changeStatus(r.id,status);
+    d.appendChild(b);
+   });
+  }
+
+  const view=document.createElement('button');
+  view.textContent='VER DETALHES';
+  view.onclick=()=>showRecord(r,'adminSearchResult');
+  d.appendChild(view);
+
+  box.appendChild(d);
+ });
+}
+
+// ========================================
+// CARREGAMENTO DE DADOS
+// ========================================
+
+async function loadRecords(){
+ const {data,error}=await db.from('app_records')
+ .select('*').order('created_at',{ascending:false});
+
+ if(error){
+  console.error(error);
+  alert('Não foi possível carregar os registos: '+error.message);
+  return;
+ }
+
+ records=data||[];
+ renderWork();
+ if(isAdmin)renderAdmin();
+}
+
+function renderWork(){
+ const mine=records.filter(r=>r.record_type==='Posto');
+ $('totalPosts').textContent=mine.length;
+ $('totalReports').textContent=
+ records.filter(r=>r.record_type==='Relatório').length;
+ $('totalDocs').textContent=
+ records.filter(r=>r.record_type==='Documento').length;
+
+ $('myPosts').innerHTML='';
+ mine.forEach(r=>{
+  const b=document.createElement('button');
+  b.textContent=(r.post_code||'')+' - '+r.title;
+  b.onclick=()=>showRecord(r,'myPosts');
+  $('myPosts').appendChild(b);
+ });
+
+ $('locationInfo').textContent=
+ currentBranch+' | '+currentArea;
+}
+
+async function loadHistories(){
+ $('reportHistory').textContent='Relatórios guardados: '+
+ records.filter(r=>r.record_type==='Relatório').length;
+
+ $('documentHistory').textContent='Documentos arquivados: '+
+ records.filter(r=>r.record_type==='Documento').length;
+
+ $('agentHistory').textContent='Agentes registados: '+
+ records.filter(r=>r.record_type==='Agente').length;
+}
+
+// ========================================
+// INÍCIO AUTOMÁTICO
+// ========================================
+
+(async()=>{
+ const {data}=await db.auth.getSession();
+ if(data.session)await initialize();
+ else go('login');
+})();
+</script>
+</body>
+</html>
